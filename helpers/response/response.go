@@ -1,4 +1,4 @@
-package helpers
+package response
 
 import (
 	"encoding/json"
@@ -13,10 +13,14 @@ type Response struct {
 }
 
 func NewResponse(input interface{}) (resp Response) {
-	switch input.(type) {
-	case error:
+	switch input := input.(type) {
+	case []string:
 		resp = Response{
 			Errors: input,
+		}
+	case error:
+		resp = Response{
+			Errors: input.Error(),
 		}
 	case string:
 		resp = Response{
@@ -43,4 +47,10 @@ func APIResponse(w http.ResponseWriter, r *http.Request, data interface{}, code 
 
 func APIResponseNotFound(w http.ResponseWriter, r *http.Request) {
 	APIResponse(w, r, errors.New(http.StatusText(http.StatusNotFound)), http.StatusNotFound)
+}
+
+func PanicRecover(w http.ResponseWriter, r *http.Request) {
+	if rc := recover(); rc != nil {
+		APIResponse(w, r, errors.New(http.StatusText(http.StatusInternalServerError)), http.StatusInternalServerError)
+	}
 }
