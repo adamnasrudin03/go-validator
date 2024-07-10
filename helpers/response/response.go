@@ -38,11 +38,15 @@ func NewResponse(input interface{}) (resp Response) {
 func APIResponse(w http.ResponseWriter, r *http.Request, data interface{}, code int) {
 	jsonBytes, err := json.Marshal(NewResponse(data))
 	if err != nil {
-		APIResponse(w, r, NewResponse(errors.New(http.StatusText(http.StatusInternalServerError))), http.StatusInternalServerError)
+		APIResponseInternalServerError(w, r)
 		return
 	}
 	w.WriteHeader(code)
 	w.Write(jsonBytes)
+}
+
+func APIResponseInternalServerError(w http.ResponseWriter, r *http.Request) {
+	APIResponse(w, r, errors.New(http.StatusText(http.StatusInternalServerError)), http.StatusInternalServerError)
 }
 
 func APIResponseNotFound(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +55,6 @@ func APIResponseNotFound(w http.ResponseWriter, r *http.Request) {
 
 func PanicRecover(w http.ResponseWriter, r *http.Request) {
 	if rc := recover(); rc != nil {
-		APIResponse(w, r, errors.New(http.StatusText(http.StatusInternalServerError)), http.StatusInternalServerError)
+		APIResponseInternalServerError(w, r)
 	}
 }
